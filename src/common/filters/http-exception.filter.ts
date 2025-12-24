@@ -11,7 +11,7 @@ export class HttpErrorFilter implements ExceptionFilter {
 
     const status = exception instanceof HttpException
       ? exception.getStatus()
-      : (exception.name === 'CastError' || exception.name === 'ValidationError')
+      : (exception.name === 'CastError' || exception.name === 'ValidationError' || exception.code === 'P2002' || exception.code === 'P2003')
         ? 400
         : 500;
 
@@ -29,6 +29,14 @@ export class HttpErrorFilter implements ExceptionFilter {
           ? exceptionResponse.message.join(', ')
           : exceptionResponse.message;
       }
+    } else if (exception.code === 'P2002') {
+      const field = exception.meta?.target || 'field';
+      message = `Duplicate entry: User with this ${field} already exists`;
+    } else if (exception.code === 'P2025') {
+      message = exception.meta?.cause || 'Record not found';
+      // status = 404; // Could optionally override status to 404 here
+    } else if (exception.message?.includes('Expected Role')) {
+      message = 'Invalid role value provided. Expected ADMIN or USER.';
     } else if (exception.name === 'CastError') {
       message = `Invalid format for field ${exception.path}: ${exception.value}`;
     } else if (exception.name === 'ValidationError') {
@@ -40,6 +48,7 @@ export class HttpErrorFilter implements ExceptionFilter {
     }
 
     response.status(status).json({
+
       status: 'error',
       message: message,
       data: null,

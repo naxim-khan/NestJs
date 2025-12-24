@@ -1,16 +1,21 @@
 // src/auth/auth.module.ts
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
+
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { AuthGuard } from './auth.guard';
+import { AuthGuard } from './guards/auth.guard';
+import { RolesGuard } from './guards/roles.guard';
+import { OwnershipGuard } from './guards/ownership.guard';
 import { TokenBlacklistService } from './token-blacklist.service';
+
 import { UsersModule } from 'src/users/users.module';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
-    UsersModule,
+    forwardRef(() => UsersModule),
+
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
@@ -20,7 +25,8 @@ import { ConfigService } from '@nestjs/config';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, AuthGuard, TokenBlacklistService],
-  exports: [AuthService, TokenBlacklistService],
+  providers: [AuthService, AuthGuard, RolesGuard, OwnershipGuard, TokenBlacklistService],
+  exports: [AuthService, AuthGuard, RolesGuard, OwnershipGuard, TokenBlacklistService, JwtModule],
 })
+
 export class AuthModule { }

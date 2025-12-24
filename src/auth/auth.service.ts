@@ -14,11 +14,19 @@ export class AuthService {
         private readonly tokenBlacklistService: TokenBlacklistService
     ) { }
 
-    // register method
+    // register method - always creates USER role
     async registerUser(createUserDto: CreateUserDto) {
-        const user = await this.userService.createRaw(createUserDto); // returns raw mongoose doc
+        // Explicitly destructure to ensure role field is never read from input
+        const { name, email, password } = createUserDto;
+
+        const user = await this.userService.createRaw({
+            name,
+            email,
+            password,
+        }); // returns Prisma user object
+
         const accessToken = await this.jwtService.signAsync(
-            { sub: user._id.toString(), email: user.email, role: user.role }
+            { sub: user.id, email: user.email, role: user.role }
         );
 
         return {
@@ -41,7 +49,7 @@ export class AuthService {
         }
 
         const accessToken = await this.jwtService.signAsync(
-            { sub: user._id.toString(), email: user.email, role: user.role }
+            { sub: user.id, email: user.email, role: user.role }
         );
         return {
             accessToken,

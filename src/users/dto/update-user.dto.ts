@@ -1,19 +1,12 @@
-import { IsEmail, IsOptional, IsString } from 'class-validator';
-import { Role } from '../types/user.types';
+import { IsOptional, IsString } from 'class-validator';
 
 export class UpdateUserDto {
   @IsOptional()
   @IsString()
   name?: string;
 
-//   @IsOptional() 
-//   @IsEmail()
-//   email?: string;
-// i commented out email to prevent update of email field.
-
-  @IsOptional()
-  @IsString()
-  role?: Role;
+  // Email update is disabled to prevent email changes
+  // Role update is disabled for regular users (admins use AdminUpdateUserDto)
 
   @IsOptional()
   @IsString()

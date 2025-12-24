@@ -1,13 +1,13 @@
 // src/auth/utils/jwt.util.ts
 import { JwtService } from '@nestjs/jwt';
-import { UserDocument } from 'src/users/schemas/user.schema';
+import { User } from '@prisma/client';
 
 export async function generateJwtToken(
-  user: UserDocument,
+  user: User,
   jwtService: JwtService,
 ): Promise<string> {
   const payload = {
-    sub: user._id,
+    sub: user.id,
     email: user.email,
     role: user.role, // optional but useful for guards
   };

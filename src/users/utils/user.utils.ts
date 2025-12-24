@@ -1,10 +1,10 @@
 import * as bcrypt from 'bcrypt';
-import { UserDocument } from '../schemas/user.schema';
+import { User } from '@prisma/client';
 
 // sanitize user object
-export function sanitizeUser(user: UserDocument) {
-  const { _id, password, __v, ...rest } = user.toObject();
-  return { id: _id.toString(), ...rest };
+export function sanitizeUser(user: User) {
+  const { password, ...rest } = user;
+  return rest;
 }
 
 
