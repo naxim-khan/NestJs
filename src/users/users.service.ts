@@ -1,85 +1,88 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { CreateUserDto } from './dto/create-user.dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-
-// i use async awaits for future DB connection so these are useless for now but will work in future.
-export interface User {
-    id: number;
-    name: string;
-    email: string;
-    password: string;
-}
-
-export interface ResponseWithUser {
-    message: string;
-    user: Omit<User, 'password'>;
-}
-
-// dummy data array
-let users: User[] = [
-    {
-        id: 1,
-        name: "Nazeem",
-        email: "nazeem@gmail.com",
-        password: "22522"
-    }
-];
+import { User, UserDocument } from './schemas/user.schema';
+import { sanitizeUser, hashPassword } from './utils/user.utils';
+import { successResponse } from './utils/response.utils';
 
 @Injectable()
 export class UsersService {
-    // sanitization
-    private sanitize(user: User) {
-        const { password, ...rest } = user;
-        return rest;
-    }
+    constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) { }
 
-    // find user index
-    private findUserIndex(id: number): number {
-        const index = users.findIndex(u => u.id === id);
-        if (index === -1) {
-            throw new NotFoundException(`User with id ${id} not found`);
+    //  Raw user creation method for AuthService only
+    async createRaw(createUserDto: CreateUserDto): Promise<UserDocument> {
+        try {
+            const hashed = await hashPassword(createUserDto.password);
+            const newUser = new this.userModel({
+                ...createUserDto,
+                password: hashed,
+            });
+            await newUser.save();
+            return newUser;
+        } catch (error) {
+            if (error.code === 11000) {
+                throw new BadRequestException('User with this email already exists');
+            }
+            throw error;
         }
-        return index;
     }
 
-    // create new user
+
     async create(createUserDto: CreateUserDto) {
-        const userExists = users.find(u => u.email === createUserDto.email);
-        if (userExists) throw new BadRequestException("User with this email already exists");
+        try {
+            const hashed = await hashPassword(createUserDto.password);
+            const newUser = new this.userModel({ ...createUserDto, password: hashed });
+            await newUser.save();
 
-        const newId = Date.now();
-        const newUser: User = { ...createUserDto, id: newId, password: createUserDto.password };
-        users.push(newUser);
-
-        return this.sanitize(newUser);
+            return newUser;
+        } catch (error) {
+            if (error.code === 11000) {
+                throw new BadRequestException('User with this email already exists');
+            }
+            throw error;
+        }
     }
 
-    // get all users
-    findAll() {
-        return users.map(user => this.sanitize(user));
+    async findAll() {
+        const users = await this.userModel.find();
+        return users.map(u => sanitizeUser(u));
     }
 
-    // get user by id
-    findOne(id: number) {
-        const user = users.find(u => u.id === id);
+    async findByEmail(email: string): Promise<UserDocument | null> {
+        return this.userModel.findOne({ email }).exec();
+    }
+
+    async findOne(id: string) {
+        const user = await this.userModel.findById(id);
         if (!user) throw new NotFoundException(`User with id ${id} not found`);
-        return this.sanitize(user);
+        return sanitizeUser(user);
     }
 
-    // update user
-    update(id: number, updateUserDto: UpdateUserDto): ResponseWithUser {
-        const userIndex = this.findUserIndex(id);
-        const updatedUser: User = { ...users[userIndex], ...updateUserDto };
-        users[userIndex] = updatedUser;
+    async update(id: string, updateUserDto: UpdateUserDto) {
+        const user = await this.userModel.findById(id);
+        if (!user) throw new NotFoundException(`User with id ${id} not found`);
 
-        return { message: `User with id ${id} updated successfully`, user: this.sanitize(updatedUser) };
+        if (updateUserDto.password) {
+            updateUserDto.password = await hashPassword(updateUserDto.password);
+        }
+
+        // 🛡️ Safe merge: only update fields that are actually provided
+        Object.keys(updateUserDto).forEach(key => {
+            if (updateUserDto[key] !== undefined) {
+                user[key] = updateUserDto[key];
+            }
+        });
+
+        await user.save();
+
+        return sanitizeUser(user);
     }
 
-    // delete user
-    remove(id: number): ResponseWithUser {
-        const userIndex = this.findUserIndex(id);
-        const [deletedUser] = users.splice(userIndex, 1);
-
-        return { message: `User with id ${id} deleted successfully`, user: this.sanitize(deletedUser) };
+    async remove(id: string) {
+        const user = await this.userModel.findByIdAndDelete(id);
+        if (!user) throw new NotFoundException(`User with id ${id} not found`);
+        return sanitizeUser(user);
     }
 }

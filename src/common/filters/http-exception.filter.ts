@@ -1,0 +1,48 @@
+// src/common/filters/http-exception.filter.ts
+import { ExceptionFilter, Catch, ArgumentsHost, HttpException } from '@nestjs/common';
+import { Request, Response } from 'express';
+
+@Catch()
+export class HttpErrorFilter implements ExceptionFilter {
+  catch(exception: any, host: ArgumentsHost) {
+    const ctx = host.switchToHttp();
+    const response = ctx.getResponse<Response>();
+    const request = ctx.getRequest<Request>();
+
+    const status = exception instanceof HttpException
+      ? exception.getStatus()
+      : (exception.name === 'CastError' || exception.name === 'ValidationError')
+        ? 400
+        : 500;
+
+    let message = 'Internal server error';
+
+    if (exception instanceof HttpException) {
+      const exceptionResponse = exception.getResponse() as
+        | string
+        | { message?: string | string[] };
+
+      if (typeof exceptionResponse === 'string') {
+        message = exceptionResponse;
+      } else if (exceptionResponse.message) {
+        message = Array.isArray(exceptionResponse.message)
+          ? exceptionResponse.message.join(', ')
+          : exceptionResponse.message;
+      }
+    } else if (exception.name === 'CastError') {
+      message = `Invalid format for field ${exception.path}: ${exception.value}`;
+    } else if (exception.name === 'ValidationError') {
+      message = Object.values(exception.errors).map((err: any) => err.message).join(', ');
+    } else {
+      // For other non-HttpExceptions, log the error
+      console.error('Unhandled Exception:', exception);
+      message = exception.message || 'An unexpected error occurred';
+    }
+
+    response.status(status).json({
+      status: 'error',
+      message: message,
+      data: null,
+    });
+  }
+}
