@@ -27,4 +27,16 @@ model User {
   role      Role     @default(USER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  posts Post[]
+}
+
+model Post {
+  id        String   @id @default(uuid()) @map("_id")
+  title     String
+  content   String
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

@@ -14,4 +14,5 @@ export interface UserContext {
 export interface AuthenticatedRequest extends Request {
     userContext: UserContext;
     accessToken?: string;
+    user?: any;
 }
