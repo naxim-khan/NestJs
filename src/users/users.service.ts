@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, Inject } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto/create-user.dto';
 import { AdminCreateUserDto } from './dto/admin-create-user.dto';
@@ -6,22 +6,36 @@ import { UpdateUserDto } from './dto/update-user.dto';
 
 import { User } from '@prisma/client';
 import { sanitizeUser, hashPassword } from './utils/user.utils';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import type { Cache } from 'cache-manager';
+import { MailQueue } from 'src/queues/email/mail.queue';
 
 @Injectable()
 export class UsersService {
-    constructor(private prisma: PrismaService) { }
+    constructor(
+        private prisma: PrismaService,
+        @Inject(CACHE_MANAGER) private cacheManager: Cache,
+        private mailQueue: MailQueue,
+    ) { }
 
     // Raw user creation method for AuthService only
     async createRaw(createUserDto: CreateUserDto | AdminCreateUserDto): Promise<User> {
 
         try {
             const hashed = await hashPassword(createUserDto.password);
-            return await this.prisma.user.create({
+            // invalidate cached users list
+            await this.cacheManager.del('users');
+            const user = await this.prisma.user.create({
                 data: {
                     ...createUserDto,
                     password: hashed,
                 },
             });
+
+            // Enqueue welcome email
+            await this.mailQueue.addWelcomeEmailJob(user.email, user.name);
+
+            return user;
         } catch (error) {
             if (error.code === 'P2002') {
                 throw new BadRequestException('User with this email already exists');
@@ -44,6 +58,12 @@ export class UsersService {
                     password: hashed,
                 },
             });
+
+            // Enqueue welcome email
+            await this.mailQueue.addWelcomeEmailJob(user.email, user.name);
+
+            // invalidate cached users list
+            await this.cacheManager.del('users');
             return sanitizeUser(user);
 
         } catch (error) {
@@ -55,8 +75,29 @@ export class UsersService {
     }
 
     async findAll() {
+        // get users from cache first
+        const CacheKey = 'users';
+
+        try {
+            const cachedUsers = await this.cacheManager.get<User[]>(CacheKey);
+            if (cachedUsers) {
+                console.log('Users served from cache.')
+                return cachedUsers;
+            }
+        } catch (err) {
+            console.error('Cache GET error:', err);
+        }
+
+        // fetched from db
         const users = await this.prisma.user.findMany();
-        return users.map(u => sanitizeUser(u));
+
+        // sanitze users
+        const sanitized = users.map(u => sanitizeUser(u));
+
+        // store in cache for 300 seconds (5 minutes)
+        await this.cacheManager.set(CacheKey, sanitized, 300000);
+
+        return sanitized;
     }
 
     async findByEmail(email: string): Promise<User | null> {
@@ -88,7 +129,8 @@ export class UsersService {
             where: { id },
             data,
         });
-
+        // invalidate cached users list
+        await this.cacheManager.del('users');
         return sanitizeUser(updatedUser);
     }
 
@@ -120,17 +162,31 @@ export class UsersService {
             where: { id },
             data,
         });
-
+        // invalidate cached users list
+        await this.cacheManager.del('users');
         return sanitizeUser(updatedUser);
     }
 
 
     async remove(id: string) {
         try {
-            const user = await this.prisma.user.delete({
-                where: { id },
-            });
-            return sanitizeUser(user);
+            const result = await this.prisma.$transaction(async (tx) => {
+                // delete child records first
+                await tx.post.deleteMany({
+                    where: { userId: id },
+                })
+
+                // delete parent record
+                const user = await tx.user.delete({
+                    where: { id },
+                })
+
+                return user;
+            })
+            // invalidate cached users list
+            await this.cacheManager.del('users');
+
+            return sanitizeUser(result);
         } catch (error) {
             throw new NotFoundException(`User with id ${id} not found`);
         }

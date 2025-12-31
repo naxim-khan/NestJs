@@ -6,8 +6,10 @@ import { UsersService } from './users.service';
 
 import { UsersController } from './users.controller';
 
+import { MailModule } from 'src/queues/email/mail.module';
+
 @Module({
-  imports: [PrismaModule, forwardRef(() => AuthModule)],
+  imports: [PrismaModule, MailModule, forwardRef(() => AuthModule)],
 
   providers: [UsersService],
 
