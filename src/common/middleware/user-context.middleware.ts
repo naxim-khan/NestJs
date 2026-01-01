@@ -1,12 +1,12 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Response, NextFunction } from 'express';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 import { AuthenticatedRequest } from '../types/request.types';
 
 @Injectable()
 export class UserContextMiddleware implements NestMiddleware {
     use(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-        const requestId = (req.headers['x-request-id'] as string) || uuidv4();
+        const requestId = (req.headers['x-request-id'] as string) || randomUUID();
 
         // Set the ID in response headers for traceability
         res.setHeader('x-request-id', requestId);

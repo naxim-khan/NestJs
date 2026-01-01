@@ -43,9 +43,30 @@ export class AuthService {
             throw new UnauthorizedException('Invalid email or password');
         }
 
+        // Check if account is locked
+        if (user.lockUntil && user.lockUntil > new Date()) {
+            const remainingTime = Math.ceil((user.lockUntil.getTime() - new Date().getTime()) / 60000);
+            throw new UnauthorizedException(`Account is temporarily locked. Try again in ${remainingTime} minutes.`);
+        }
+
         const isPasswordMatching = await comparePassword(loginDto.password, user.password);
+
         if (!isPasswordMatching) {
+            // Increment failed attempts
+            const updatedUser = await this.userService.incrementFailedAttempts(user.id);
+
+            // Lock account if 5 or more failed attempts
+            if (updatedUser.failedLoginAttempts >= 5) {
+                await this.userService.lockAccount(user.id, 15); // Lock for 15 minutes
+                throw new UnauthorizedException('Too many failed attempts. Account has been locked for 15 minutes.');
+            }
+
             throw new UnauthorizedException('Invalid email or password');
+        }
+
+        // Reset failed attempts on successful login
+        if (user.failedLoginAttempts > 0 || user.lockUntil) {
+            await this.userService.resetFailedAttempts(user.id);
         }
 
         const accessToken = await this.jwtService.signAsync(

@@ -1,16 +1,23 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
+import { ThrottlerGuard, ThrottlerStorage } from '@nestjs/throttler';
 
 describe('AppController (e2e)', () => {
-  let app: INestApplication<App>;
+  let app: INestApplication;
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideGuard(ThrottlerGuard)
+      .useValue({ canActivate: () => true })
+      .overrideProvider(ThrottlerStorage)
+      .useValue({
+        increment: jest.fn().mockResolvedValue({ totalHits: 0, timeToReset: 60 }),
+      })
+      .compile();
 
     app = moduleFixture.createNestApplication();
     await app.init();

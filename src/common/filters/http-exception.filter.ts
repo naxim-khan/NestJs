@@ -44,7 +44,9 @@ export class HttpErrorFilter implements ExceptionFilter {
     } else {
       // For other non-HttpExceptions, log the error
       console.error('Unhandled Exception:', exception);
-      message = exception.message || 'An unexpected error occurred';
+
+      const isProduction = process.env.NODE_ENV === 'production';
+      message = isProduction ? 'Internal server error' : (exception.message || 'An unexpected error occurred');
     }
 
     response.status(status).json({

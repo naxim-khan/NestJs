@@ -7,8 +7,22 @@ import { ResponseInterceptor } from './common/interceptors/response.interceptor'
 import { getQueueToken } from '@nestjs/bull';
 import { BullDashboardModule } from './queues/dashboard/bull-dashboard.module';
 
+import helmet from 'helmet';
+import compression from 'compression';
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Security Hardening
+  app.use(helmet());
+  app.enableCors({
+    origin: '*', // In production, replace with specific origins
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
+  });
+  app.use(compression());
+
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.useGlobalFilters(new HttpErrorFilter());
   app.useGlobalInterceptors(new ResponseInterceptor());

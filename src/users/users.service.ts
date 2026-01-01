@@ -191,4 +191,27 @@ export class UsersService {
             throw new NotFoundException(`User with id ${id} not found`);
         }
     }
+
+    async incrementFailedAttempts(id: string) {
+        return this.prisma.user.update({
+            where: { id },
+            data: { failedLoginAttempts: { increment: 1 } },
+        });
+    }
+
+    async resetFailedAttempts(id: string) {
+        return this.prisma.user.update({
+            where: { id },
+            data: { failedLoginAttempts: 0, lockUntil: null },
+        });
+    }
+
+    async lockAccount(id: string, lockDurationMinutes: number) {
+        const lockUntil = new Date();
+        lockUntil.setMinutes(lockUntil.getMinutes() + lockDurationMinutes);
+        return this.prisma.user.update({
+            where: { id },
+            data: { lockUntil },
+        });
+    }
 }

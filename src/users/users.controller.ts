@@ -12,13 +12,12 @@ import { User } from 'src/auth/decorators/user.decorator';
 import { Role } from '@prisma/client';
 
 @Controller('users')
-@UseGuards(AuthGuard) // All routes require authentication
 export class UsersController {
   constructor(private readonly usersService: UsersService) { }
 
   // Admin-only endpoint to create new users
   @Post()
-  @UseGuards(RolesGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   async create(@Body() adminCreateUserDto: AdminCreateUserDto) {
     return this.usersService.create(adminCreateUserDto);
@@ -27,7 +26,7 @@ export class UsersController {
 
   // Admin-only endpoint to list all users
   @Get()
-  @UseGuards(RolesGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   async findAll() {
     return this.usersService.findAll();
@@ -35,14 +34,14 @@ export class UsersController {
 
   // Users can view their own profile, admins can view any profile
   @Get(':id')
-  @UseGuards(OwnershipGuard)
+  @UseGuards(AuthGuard, OwnershipGuard)
   async findOne(@Param('id') id: string) {
     return this.usersService.findOne(id);
   }
 
   // Users can update their own profile, admins can update any profile with all fields
   @Put(':id')
-  @UseGuards(OwnershipGuard)
+  @UseGuards(AuthGuard, OwnershipGuard)
   async update(
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto | AdminUpdateUserDto,
@@ -58,7 +57,7 @@ export class UsersController {
 
   // Users can delete their own profile, admins can delete any profile
   @Delete(':id')
-  @UseGuards(OwnershipGuard)
+  @UseGuards(AuthGuard, OwnershipGuard)
   async remove(@Param('id') id: string) {
     return this.usersService.remove(id);
   }

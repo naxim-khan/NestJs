@@ -1,9 +1,12 @@
 import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BullModule } from '@nestjs/bull';
 import { GlobalCacheModule } from './common/global-cache.module';
 import { MailModule } from './queues/email/mail.module';
 import { BullDashboardModule } from './queues/dashboard/bull-dashboard.module';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
 
 import configuration from './config';
 import { AppController } from './app.controller';
@@ -18,7 +21,7 @@ import { PostsModule } from './posts/posts.module';
 import { UserContextMiddleware } from './common/middleware/user-context.middleware';
 import { AuthRequestContextMiddleware } from './common/middleware/auth-request-context.middleware';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
-import { RateLimitMiddleware } from './common/middleware/rate-limit.middleware';
+import { AdminAuthMiddleware } from './common/middleware/admin-auth.middleware';
 
 @Module({
   imports: [
@@ -42,6 +45,16 @@ import { RateLimitMiddleware } from './common/middleware/rate-limit.middleware';
     GlobalCacheModule,
     MailModule,
     BullDashboardModule,
+    ThrottlerModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        throttlers: [{ ttl: 60000, limit: 100 }], // 100 requests per minute by default
+        storage: new ThrottlerStorageRedisService({
+          host: config.get('cache.host'),
+          port: config.get('cache.port'),
+        }),
+      }),
+    }),
     UsersModule,
     AuthModule,
     PrismaModule,
@@ -49,12 +62,22 @@ import { RateLimitMiddleware } from './common/middleware/rate-limit.middleware';
     PostsModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
-      .apply(UserContextMiddleware, AuthRequestContextMiddleware, RateLimitMiddleware, LoggerMiddleware)
+      .apply(UserContextMiddleware, AuthRequestContextMiddleware, LoggerMiddleware)
       .forRoutes('*');
+
+    consumer
+      .apply(AdminAuthMiddleware)
+      .forRoutes('/admin/queues');
   }
 }

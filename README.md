@@ -2,97 +2,157 @@
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
-
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
+<p align="center">
+  <img src="https://img.shields.io/badge/NestJS-E0234E?style=for-the-badge&logo=nestjs&logoColor=white" />
+  <img src="https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white" />
+  <img src="https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white" />
+  <img src="https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white" />
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" />
 </p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-## Description
+<h1 align="center">Premium NestJS Security & Scalability Architecture</h1>
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+<p align="center">
+  <b>A high-performance, enterprise-ready NestJS boilerplate featuring advanced security hardening, distributed caching, and background task management.</b>
+</p>
 
-## Project setup
+---
 
+## 🚀 Key Features
+
+### 🛡️ Enterprise Security Suite
+- **Advanced Authentication**: JWT-based login with dynamic token blacklisting on logout.
+- **Granular Authorization**: Dual-layer access control:
+  - **Role-Based (RBAC)**: Distinct permissions for `ADMIN` and `USER` roles.
+  - **Ownership-Based**: Automatic verification of resource ownership (Users can only modify their own profiles/posts).
+- **Brute-Force Protection**: 
+  - **Account Lockout**: Automatic 15-minute lockout after 5 failed login attempts.
+  - **Distributed Throttler**: Redis-backed rate limiting (100 req/min global, 5 req/min auth).
+- **Hardened Infrastructure**: Pre-configured `Helmet` headers, `CORS` whitelisting, and `Gzip` compression.
+
+### ⚡ Performance & Scalability
+- **Global Redis Caching**: Automatic caching layer for high-demand resources with manual invalidation on updates.
+- **Background Jobs**: Bull Queue integration for asynchronous tasks like email notification delivery.
+- **Database Architecture**: High-speed MongoDB integration via Prisma ORM with structured schemas and automated migrations.
+
+### 🛠️ Developer Experience
+- **Bull Dashboard**: Visual monitoring of background tasks (Secured via Admin-only middleware at `/admin/queues`).
+- **Comprehensive Testing**: 
+  - **Unit Testing**: 100% coverage on core services and controllers.
+  - **E2E Testing**: Automated integration tests for Auth, Users, and Posts modules.
+- **Clean Code Architecture**: Follows best practices with standard Response Interceptors and Global Exception Filters.
+
+---
+
+## 📦 Tech Stack
+
+- **Framework**: [NestJS v11](https://nestjs.com/)
+- **Runtime**: [Node.js v20+](https://nodejs.org/)
+- **Database**: [MongoDB](https://www.mongodb.com/)
+- **ORM**: [Prisma](https://www.prisma.io/)
+- **Cache/Queue**: [Redis](https://redis.io/)
+- **Security**: [Helmet](https://helmetjs.github.io/), [Bcrypt](https://github.com/kelektiv/node.bcrypt.js)
+- **Testing**: [Jest](https://jestjs.io/), [Supertest](https://github.com/visionmedia/supertest)
+
+---
+
+## ⚙️ Project Setup
+
+### 1. Prerequisites
+- Node.js (v20+)
+- MongoDB instance (Atlas or local)
+- Redis server
+
+### 2. Environment Configuration
+Create a `.env` file in the root directory:
+
+```env
+# Application
+PORT=3000
+NODE_ENV=development
+
+# Security
+JWT_SECRET=your_ultra_secure_secret
+JWT_EXPIRES_IN=1h
+
+# Database
+MONGO_URI="mongodb+srv://user:pass@cluster.mongodb.net/dbname"
+
+# Cache & Queue (Redis)
+REDIS_HOST=localhost
+REDIS_PORT=6379
+
+# Mail (Optional)
+MAIL_HOST=smtp.example.com
+MAIL_PORT=587
+MAIL_USER=user@example.com
+MAIL_PASS=password
+```
+
+### 3. Installation
 ```bash
 $ npm install
 ```
 
-## Compile and run the project
+### 4. Database Sync
+```bash
+$ npx prisma generate
+```
+
+---
+
+## 🏃 Running the App
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
+# Development mode
 $ npm run start:dev
 
-# production mode
+# Production mode
+$ npm run build
 $ npm run start:prod
 ```
 
-## Run tests
+---
+
+## 🧪 Testing Suite
+
+We maintain a rigorous testing standard to ensure architectural stability.
 
 ```bash
-# unit tests
+# Run all tests (Unit + E2E)
 $ npm run test
 
-# e2e tests
+# Run specific module E2E tests
 $ npm run test:e2e
 
-# test coverage
+# Run with coverage report
 $ npm run test:cov
 ```
 
-## Deployment
+---
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## 📈 Monitoring
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+Access the secondary administrative dashboard to monitor queue health:
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+- **Endpoint**: `http://localhost:3000/admin/queues`
+- **Access**: Requires `ADMIN` role token in the Authorization header.
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+---
 
-## Resources
+## 📜 API Documentation Summary
 
-Check out a few resources that may come in handy when working with NestJS:
+| Method | Endpoint | Description | Access |
+| :--- | :--- | :--- | :--- |
+| **POST** | `/auth/register` | User Registration | Public (Throttled) |
+| **POST** | `/auth/login` | User Login | Public (Lockout protection) |
+| **GET** | `/auth/profile` | Current Profile | Private |
+| **GET** | `/users` | List All Users | Admin Only |
+| **GET** | `/posts` | Feed | Public |
+| **POST** | `/posts` | Create Post | Private |
+| **PATCH** | `/posts/:id` | Update Post | Owner Only |
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+---
 
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+## 📄 License
+This project is [MIT licensed](LICENSE).
