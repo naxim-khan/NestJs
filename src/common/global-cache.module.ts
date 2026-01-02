@@ -1,4 +1,4 @@
-import { Module, Global } from '@nestjs/common';
+import { Module, Global, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { createCache } from 'cache-manager';
@@ -24,7 +24,8 @@ import KeyvRedis from '@keyv/redis';
 
                     return cache;
                 } catch (error) {
-                    console.error('❌ [CACHE] Failed to initialize Redis cache:', error);
+                    const logger = new Logger('GlobalCacheModule');
+                    logger.error('❌ [CACHE] Failed to initialize Redis cache:', error);
                     throw error;
                 }
             },

@@ -59,6 +59,7 @@ describe('Posts (e2e)', () => {
             next();
         });
         app.useGlobalPipes(new ValidationPipe());
+        app.setGlobalPrefix('api');
         await app.init();
 
         prisma = app.get<PrismaService>(PrismaService);
@@ -72,12 +73,12 @@ describe('Posts (e2e)', () => {
         });
 
         // Register & Login Test User
-        const res1 = await request(app.getHttpServer()).post('/auth/register').send(testUser);
+        const res1 = await request(app.getHttpServer()).post('/api/auth/register').send(testUser);
         if (res1.status !== 201) throw new Error(`Registration failed: ${res1.status}`);
         token = res1.body.accessToken;
 
         // Register & Login Other User
-        const res2 = await request(app.getHttpServer()).post('/auth/register').send(otherUser);
+        const res2 = await request(app.getHttpServer()).post('/api/auth/register').send(otherUser);
         if (res2.status !== 201) throw new Error(`Registration 2 failed: ${res2.status}`);
         otherToken = res2.body.accessToken;
     }, 45000);
@@ -99,7 +100,7 @@ describe('Posts (e2e)', () => {
     describe('/posts (POST)', () => {
         it('should create a new post', () => {
             return request(app.getHttpServer())
-                .post('/posts')
+                .post('/api/posts')
                 .set('Authorization', `Bearer ${token}`)
                 .send({
                     title: 'My First Post',
@@ -115,7 +116,7 @@ describe('Posts (e2e)', () => {
 
         it('should fail to create post without auth', () => {
             return request(app.getHttpServer())
-                .post('/posts')
+                .post('/api/posts')
                 .send({ title: 'Fail', content: 'Fail' })
                 .expect(401);
         });
@@ -124,7 +125,7 @@ describe('Posts (e2e)', () => {
     describe('/posts (GET)', () => {
         it('should return all posts', () => {
             return request(app.getHttpServer())
-                .get('/posts')
+                .get('/api/posts')
                 .expect(200)
                 .expect((res) => {
                     expect(Array.isArray(res.body)).toBe(true);
@@ -136,7 +137,7 @@ describe('Posts (e2e)', () => {
     describe('/posts/me (GET)', () => {
         it('should return my posts', () => {
             return request(app.getHttpServer())
-                .get('/posts/me')
+                .get('/api/posts/me')
                 .set('Authorization', `Bearer ${token}`)
                 .expect(200)
                 .expect((res) => {
@@ -148,7 +149,7 @@ describe('Posts (e2e)', () => {
     describe('/posts/:id (PATCH)', () => {
         it('should allow owner to update post', () => {
             return request(app.getHttpServer())
-                .patch(`/posts/${postId}`)
+                .patch(`/api/posts/${postId}`)
                 .set('Authorization', `Bearer ${token}`)
                 .send({ title: 'Updated Title' })
                 .expect(200)
@@ -159,7 +160,7 @@ describe('Posts (e2e)', () => {
 
         it('should forbid other user from updating post', () => {
             return request(app.getHttpServer())
-                .patch(`/posts/${postId}`)
+                .patch(`/api/posts/${postId}`)
                 .set('Authorization', `Bearer ${otherToken}`)
                 .send({ title: 'Malicious Update' })
                 .expect(403);
@@ -169,14 +170,14 @@ describe('Posts (e2e)', () => {
     describe('/posts/:id (DELETE)', () => {
         it('should forbid other user from deleting post', () => {
             return request(app.getHttpServer())
-                .delete(`/posts/${postId}`)
+                .delete(`/api/posts/${postId}`)
                 .set('Authorization', `Bearer ${otherToken}`)
                 .expect(403);
         });
 
         it('should allow owner to delete post', () => {
             return request(app.getHttpServer())
-                .delete(`/posts/${postId}`)
+                .delete(`/api/posts/${postId}`)
                 .set('Authorization', `Bearer ${token}`)
                 .expect(200);
         });

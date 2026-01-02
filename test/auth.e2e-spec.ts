@@ -47,6 +47,7 @@ describe('AuthController (e2e)', () => {
             }
             next();
         });
+        app.setGlobalPrefix('api');
         await app.init();
         prisma = app.get<PrismaService>(PrismaService);
 
@@ -70,7 +71,7 @@ describe('AuthController (e2e)', () => {
     describe('/auth/register (POST)', () => {
         it('should register a new user', () => {
             return request(app.getHttpServer())
-                .post('/auth/register')
+                .post('/api/auth/register')
                 .send(testUser)
                 .expect(201)
                 .expect((res) => {
@@ -81,7 +82,7 @@ describe('AuthController (e2e)', () => {
 
         it('should fail registration with existing email', () => {
             return request(app.getHttpServer())
-                .post('/auth/register')
+                .post('/api/auth/register')
                 .send(testUser)
                 .expect(400);
         });
@@ -90,7 +91,7 @@ describe('AuthController (e2e)', () => {
     describe('/auth/login (POST)', () => {
         it('should login and return token', () => {
             return request(app.getHttpServer())
-                .post('/auth/login')
+                .post('/api/auth/login')
                 .send({
                     email: testUser.email,
                     password: testUser.password,
@@ -103,7 +104,7 @@ describe('AuthController (e2e)', () => {
 
         it('should fail login with wrong password', () => {
             return request(app.getHttpServer())
-                .post('/auth/login')
+                .post('/api/auth/login')
                 .send({
                     email: testUser.email,
                     password: 'wrongpassword',
@@ -115,7 +116,7 @@ describe('AuthController (e2e)', () => {
     describe('/auth/profile (GET)', () => {
         it('should return user profile with valid token', async () => {
             const loginRes = await request(app.getHttpServer())
-                .post('/auth/login')
+                .post('/api/auth/login')
                 .send({
                     email: testUser.email,
                     password: testUser.password,
@@ -124,7 +125,7 @@ describe('AuthController (e2e)', () => {
             const token = loginRes.body.accessToken;
 
             return request(app.getHttpServer())
-                .get('/auth/profile')
+                .get('/api/auth/profile')
                 .set('Authorization', `Bearer ${token}`)
                 .expect(200)
                 .expect((res) => {
@@ -134,7 +135,7 @@ describe('AuthController (e2e)', () => {
 
         it('should fail without token', () => {
             return request(app.getHttpServer())
-                .get('/auth/profile')
+                .get('/api/auth/profile')
                 .expect(401);
         });
     });
@@ -142,7 +143,7 @@ describe('AuthController (e2e)', () => {
     describe('/auth/logout (POST)', () => {
         it('should logout user and blacklist token', async () => {
             const loginRes = await request(app.getHttpServer())
-                .post('/auth/login')
+                .post('/api/auth/login')
                 .send({
                     email: testUser.email,
                     password: testUser.password,
@@ -151,13 +152,13 @@ describe('AuthController (e2e)', () => {
             const token = loginRes.body.accessToken;
 
             await request(app.getHttpServer())
-                .post('/auth/logout')
+                .post('/api/auth/logout')
                 .set('Authorization', `Bearer ${token}`)
                 .expect(201);
 
             // Accessing profile with blacklisted token should fail
             return request(app.getHttpServer())
-                .get('/auth/profile')
+                .get('/api/auth/profile')
                 .set('Authorization', `Bearer ${token}`)
                 .expect(401);
         });

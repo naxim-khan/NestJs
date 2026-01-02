@@ -37,12 +37,17 @@ export class FileLoggerService implements LoggerService {
         // Only logged to console if needed
     }
 
-    private writeToFile(level: string, message: any, context?: string, trace?: string) {
+    private async writeToFile(level: string, message: any, context?: string, trace?: string) {
         const timestamp = new Date().toISOString();
         const contextStr = context ? ` [${context}]` : '';
         const traceStr = trace ? `\n${trace}` : '';
         const formattedMessage = `[${timestamp}] ${level}${contextStr}: ${message}${traceStr}\n`;
 
-        fs.appendFileSync(this.logFile, formattedMessage, 'utf8');
+        try {
+            await fs.promises.appendFile(this.logFile, formattedMessage, 'utf8');
+        } catch (error) {
+            // Fallback to console if file logging fails to avoid losing critical logs
+            console.error('Failed to write to log file:', error);
+        }
     }
 }

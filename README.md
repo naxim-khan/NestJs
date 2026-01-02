@@ -28,7 +28,9 @@
 - **Brute-Force Protection**: 
   - **Account Lockout**: Automatic 15-minute lockout after 5 failed login attempts.
   - **Distributed Throttler**: Redis-backed rate limiting (100 req/min global, 5 req/min auth).
-- **Hardened Infrastructure**: Pre-configured `Helmet` headers, `CORS` whitelisting, and `Gzip` compression.
+- **Hardened Infrastructure**: Pre-configured `Helmet` headers, environment-based `CORS` whitelisting, and `Gzip` compression.
+- **Health Monitoring**: Production-grade liveness and readiness probes via `@nestjs/terminus` (Prisma & Redis health checks).
+- **Auto-Generated Documentation**: Real-time OpenAPI/Swagger documentation for all API resources.
 
 ### ⚡ Performance & Scalability
 - **Global Redis Caching**: Automatic caching layer for high-demand resources with manual invalidation on updates.
@@ -131,12 +133,41 @@ $ npm run test:cov
 
 ---
 
-## 📈 Monitoring
+---
 
-Access the secondary administrative dashboard to monitor queue health:
+## 📖 API Documentation & Testing
 
-- **Endpoint**: `http://localhost:3000/admin/queues`
-- **Access**: Requires `ADMIN` role token in the Authorization header.
+### 🟢 Swagger UI (Interactive)
+The complete API documentation is auto-generated and available as an interactive playground:
+- **Endpoint**: `http://localhost:3000/api/docs`
+- **Features**: Live request testing, schema definitions, and authentication simulation.
+
+### 🧡 Postman Collection
+For offline testing or team collaboration, use our official Postman documentation:
+- **Link**: [Postman Collection](https://documenter.getpostman.com/view/26901515/2sBXVckCjz#2aee7993-d2f8-44a0-93f1-5ca64ea4c227)
+
+---
+
+## 🐳 Docker Deployment
+
+The application is container-ready with a professional multi-stage build.
+
+```bash
+# Start all services (App, MongoDB, Redis)
+$ docker-compose up --build
+
+# Run in detached mode
+$ docker-compose up -d
+```
+
+---
+
+## 📈 Monitoring & Health
+We provide standardized health checks for zero-downtime deployments and monitoring.
+
+- **Liveness**: `http://localhost:3000/api/health` (Simple uptime check)
+- **Readiness**: `http://localhost:3000/api/health/ready` (Verifies DB & Redis connectivity)
+- **Jobs**: `http://localhost:3000/admin/queues` (Worker monitoring)
 
 ---
 
@@ -144,13 +175,13 @@ Access the secondary administrative dashboard to monitor queue health:
 
 | Method | Endpoint | Description | Access |
 | :--- | :--- | :--- | :--- |
-| **POST** | `/auth/register` | User Registration | Public (Throttled) |
-| **POST** | `/auth/login` | User Login | Public (Lockout protection) |
-| **GET** | `/auth/profile` | Current Profile | Private |
-| **GET** | `/users` | List All Users | Admin Only |
-| **GET** | `/posts` | Feed | Public |
-| **POST** | `/posts` | Create Post | Private |
-| **PATCH** | `/posts/:id` | Update Post | Owner Only |
+| **POST** | `/api/auth/register` | User Registration | Public (Throttled) |
+| **POST** | `/api/auth/login` | User Login | Public (Lockout protection) |
+| **GET** | `/api/auth/profile` | Current Profile | Private |
+| **GET** | `/api/users` | List All Users | Admin Only |
+| **GET** | `/api/posts` | Feed | Public |
+| **POST** | `/api/posts` | Create Post | Private |
+| **PATCH** | `/api/posts/:id` | Update Post | Owner Only |
 
 ---
 

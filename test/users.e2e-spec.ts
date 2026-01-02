@@ -65,6 +65,7 @@ describe('Users (e2e)', () => {
             next();
         });
         app.useGlobalPipes(new ValidationPipe());
+        app.setGlobalPrefix('api');
         await app.init();
 
         prisma = app.get<PrismaService>(PrismaService);
@@ -75,23 +76,23 @@ describe('Users (e2e)', () => {
         });
 
         // Register & Login Admin
-        await request(app.getHttpServer()).post('/auth/register').send(adminUser);
+        await request(app.getHttpServer()).post('/api/auth/register').send(adminUser);
         await prisma.user.update({
             where: { email: adminUser.email },
             data: { role: Role.ADMIN }
         });
         const adminLogin = await request(app.getHttpServer())
-            .post('/auth/login')
+            .post('/api/auth/login')
             .send({ email: adminUser.email, password: adminUser.password });
         adminToken = adminLogin.body.accessToken;
 
         // Register Regular User
-        const userRes = await request(app.getHttpServer()).post('/auth/register').send(regularUser);
+        const userRes = await request(app.getHttpServer()).post('/api/auth/register').send(regularUser);
         userToken = userRes.body.accessToken;
         userId = userRes.body.user.id;
 
         // Register Target User (for admin update tests)
-        const targetRes = await request(app.getHttpServer()).post('/auth/register').send(targetUser);
+        const targetRes = await request(app.getHttpServer()).post('/api/auth/register').send(targetUser);
         targetId = targetRes.body.user.id;
     }, 45000); // Increased timeout
 
@@ -109,14 +110,14 @@ describe('Users (e2e)', () => {
     describe('/users (GET)', () => {
         it('should allow admin to list users', () => {
             return request(app.getHttpServer())
-                .get('/users')
+                .get('/api/users')
                 .set('Authorization', `Bearer ${adminToken}`)
                 .expect(200);
         });
 
         it('should forbid regular user from listing users', () => {
             return request(app.getHttpServer())
-                .get('/users')
+                .get('/api/users')
                 .set('Authorization', `Bearer ${userToken}`)
                 .expect(403);
         });
@@ -125,7 +126,7 @@ describe('Users (e2e)', () => {
     describe('/users/:id (GET)', () => {
         it('should allow user to view their own profile', () => {
             return request(app.getHttpServer())
-                .get(`/users/${userId}`)
+                .get(`/api/users/${userId}`)
                 .set('Authorization', `Bearer ${userToken}`)
                 .expect(200)
                 .expect((res) => {
@@ -135,7 +136,7 @@ describe('Users (e2e)', () => {
 
         it('should allow admin to view any profile', () => {
             return request(app.getHttpServer())
-                .get(`/users/${userId}`)
+                .get(`/api/users/${userId}`)
                 .set('Authorization', `Bearer ${adminToken}`)
                 .expect(200);
         });
@@ -144,7 +145,7 @@ describe('Users (e2e)', () => {
     describe('/users/:id (PUT)', () => {
         it('should allow user to update their own name', () => {
             return request(app.getHttpServer())
-                .put(`/users/${userId}`)
+                .put(`/api/users/${userId}`)
                 .set('Authorization', `Bearer ${userToken}`)
                 .send({ name: 'Updated Name' })
                 .expect(200);
@@ -152,7 +153,7 @@ describe('Users (e2e)', () => {
 
         it('should NOT allow user to update their role', () => {
             return request(app.getHttpServer())
-                .put(`/users/${userId}`)
+                .put(`/api/users/${userId}`)
                 .set('Authorization', `Bearer ${userToken}`)
                 .send({ role: 'ADMIN' })
                 .expect(200)
@@ -163,7 +164,7 @@ describe('Users (e2e)', () => {
 
         it('should allow admin to update user role', () => {
             return request(app.getHttpServer())
-                .put(`/users/${targetId}`)
+                .put(`/api/users/${targetId}`)
                 .set('Authorization', `Bearer ${adminToken}`)
                 .send({ role: 'ADMIN' })
                 .expect(200)
@@ -176,7 +177,7 @@ describe('Users (e2e)', () => {
     describe('/users/:id (DELETE)', () => {
         it('should allow admin to delete user', () => {
             return request(app.getHttpServer())
-                .delete(`/users/${targetId}`)
+                .delete(`/api/users/${targetId}`)
                 .set('Authorization', `Bearer ${adminToken}`)
                 .expect(200);
         });

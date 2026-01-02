@@ -85,7 +85,7 @@ export class AuthService {
 
     // logout method
     async logoutUser(token: string) {
-        this.tokenBlacklistService.add(token);
+        await this.tokenBlacklistService.add(token);
         return 'User logged out successfully';
     }
 }

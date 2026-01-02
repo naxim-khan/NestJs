@@ -1,4 +1,4 @@
-import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
+import { Module, NestModule, MiddlewareConsumer, Logger } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BullModule } from '@nestjs/bull';
@@ -16,6 +16,7 @@ import { AuthModule } from './auth/auth.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { CommonModule } from './common/common.module';
 import { PostsModule } from './posts/posts.module';
+import { HealthModule } from './health/health.module';
 
 // Middleware
 import { UserContextMiddleware } from './common/middleware/user-context.middleware';
@@ -32,11 +33,12 @@ import { AdminAuthMiddleware } from './common/middleware/admin-auth.middleware';
     BullModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
+        const logger = new Logger('BullModule');
         const redisOptions = {
           host: config.get('cache.host'),
           port: config.get('cache.port'),
         };
-        console.log(`📡 [Bull] Connecting to Redis at ${redisOptions.host}:${redisOptions.port}`);
+        logger.log(`📡 [Bull] Connecting to Redis at ${redisOptions.host}:${redisOptions.port}`);
         return {
           redis: redisOptions,
         };
@@ -60,6 +62,7 @@ import { AdminAuthMiddleware } from './common/middleware/admin-auth.middleware';
     PrismaModule,
     CommonModule,
     PostsModule,
+    HealthModule,
   ],
   controllers: [AppController],
   providers: [

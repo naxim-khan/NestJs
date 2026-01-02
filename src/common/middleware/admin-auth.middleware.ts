@@ -3,6 +3,7 @@ import { Request, Response, NextFunction } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { Role } from '@prisma/client';
 import { TokenBlacklistService } from 'src/auth/token-blacklist.service';
+import * as RequestTypes from 'src/common/types/request.types';
 
 @Injectable()
 export class AdminAuthMiddleware implements NestMiddleware {
@@ -11,7 +12,7 @@ export class AdminAuthMiddleware implements NestMiddleware {
         private tokenBlacklistService: TokenBlacklistService,
     ) { }
 
-    async use(req: Request, res: Response, next: NextFunction) {
+    async use(req: RequestTypes.AuthenticatedRequest, res: Response, next: NextFunction) {
         const authHeader = req.headers.authorization;
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
             throw new UnauthorizedException('Authentication required');
@@ -19,7 +20,7 @@ export class AdminAuthMiddleware implements NestMiddleware {
 
         const token = authHeader.split(' ')[1];
 
-        if (this.tokenBlacklistService.isBlacklisted(token)) {
+        if (await this.tokenBlacklistService.isBlacklisted(token)) {
             throw new UnauthorizedException('Token has been revoked');
         }
 
@@ -28,7 +29,7 @@ export class AdminAuthMiddleware implements NestMiddleware {
             if (payload.role !== Role.ADMIN) {
                 throw new ForbiddenException('Admin access required');
             }
-            req['user'] = payload;
+            req.user = payload;
             next();
         } catch (error) {
             throw new UnauthorizedException('Invalid token');

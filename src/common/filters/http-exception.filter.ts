@@ -1,9 +1,11 @@
 // src/common/filters/http-exception.filter.ts
-import { ExceptionFilter, Catch, ArgumentsHost, HttpException } from '@nestjs/common';
+import { ExceptionFilter, Catch, ArgumentsHost, HttpException, Logger } from '@nestjs/common';
 import { Request, Response } from 'express';
 
 @Catch()
 export class HttpErrorFilter implements ExceptionFilter {
+  private readonly logger = new Logger(HttpErrorFilter.name);
+
   catch(exception: any, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
@@ -43,7 +45,7 @@ export class HttpErrorFilter implements ExceptionFilter {
       message = Object.values(exception.errors).map((err: any) => err.message).join(', ');
     } else {
       // For other non-HttpExceptions, log the error
-      console.error('Unhandled Exception:', exception);
+      this.logger.error('Unhandled Exception:', exception);
 
       const isProduction = process.env.NODE_ENV === 'production';
       message = isProduction ? 'Internal server error' : (exception.message || 'An unexpected error occurred');

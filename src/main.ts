@@ -9,30 +9,50 @@ import { BullDashboardModule } from './queues/dashboard/bull-dashboard.module';
 
 import helmet from 'helmet';
 import compression from 'compression';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { Logger } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  const configService = app.get(ConfigService);
+  const logger = new Logger('Bootstrap');
+
   // Security Hardening
   app.use(helmet());
+
+  const allowedOrigins = configService.get<string>('CORS_ORIGINS')?.split(',') || '*';
   app.enableCors({
-    origin: '*', // In production, replace with specific origins
+    origin: allowedOrigins,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    preflightContinue: false,
-    optionsSuccessStatus: 204,
+    credentials: true,
   });
   app.use(compression());
+
+  app.setGlobalPrefix('api');
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.useGlobalFilters(new HttpErrorFilter());
   app.useGlobalInterceptors(new ResponseInterceptor());
-  const configService = app.get(ConfigService);
+
+  // Swagger Documentation
+  const config = new DocumentBuilder()
+    .setTitle('NestJS Production API')
+    .setDescription('The API documentation for the professional NestJS production-grade application')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api/docs', app, document);
 
   // Setup Bull Dashboard
   const mailQueue = app.get(getQueueToken('mail'));
   BullDashboardModule.setupDashboard(app, [mailQueue]);
 
-  await app.listen(configService.getOrThrow('app.port'));
+  const port = configService.getOrThrow('app.port');
+  await app.listen(port);
+  logger.log(`🚀 Application is running on: http://localhost:${port}/api`);
+  logger.log(`📝 Swagger documentation available at: http://localhost:${port}/api/docs`);
 }
 bootstrap();
 

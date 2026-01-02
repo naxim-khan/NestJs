@@ -22,7 +22,7 @@ export class AuthGuard implements CanActivate {
         }
 
         // Check if token is blacklisted
-        if (this.tokenBlacklistService.isBlacklisted(token)) {
+        if (await this.tokenBlacklistService.isBlacklisted(token)) {
             throw new UnauthorizedException('Token has been revoked');
         }
 

@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, NotFoundException, Inject } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, Inject, Logger } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto/create-user.dto';
 import { AdminCreateUserDto } from './dto/admin-create-user.dto';
@@ -12,6 +12,8 @@ import { MailQueue } from 'src/queues/email/mail.queue';
 
 @Injectable()
 export class UsersService {
+    private readonly logger = new Logger(UsersService.name);
+
     constructor(
         private prisma: PrismaService,
         @Inject(CACHE_MANAGER) private cacheManager: Cache,
@@ -81,11 +83,11 @@ export class UsersService {
         try {
             const cachedUsers = await this.cacheManager.get<User[]>(CacheKey);
             if (cachedUsers) {
-                console.log('Users served from cache.')
+                this.logger.log('Users served from cache.');
                 return cachedUsers;
             }
         } catch (err) {
-            console.error('Cache GET error:', err);
+            this.logger.error('Cache GET error:', err);
         }
 
         // fetched from db
