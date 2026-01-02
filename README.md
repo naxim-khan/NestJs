@@ -10,180 +10,134 @@
   <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" />
 </p>
 
-<h1 align="center">Premium NestJS Security & Scalability Architecture</h1>
+<h1 align="center">NestJS Backend - Security & Scalability</h1>
 
 <p align="center">
-  <b>A high-performance, enterprise-ready NestJS boilerplate featuring advanced security hardening, distributed caching, and background task management.</b>
+  <b>Personal project implementing security hardening, distributed caching, and background task management.</b>
 </p>
 
 ---
 
-## 🚀 Key Features
+## 🛠️ Implementation Details
 
-### 🛡️ Enterprise Security Suite
-- **Advanced Authentication**: JWT-based login with dynamic token blacklisting on logout.
-- **Granular Authorization**: Dual-layer access control:
-  - **Role-Based (RBAC)**: Distinct permissions for `ADMIN` and `USER` roles.
-  - **Ownership-Based**: Automatic verification of resource ownership (Users can only modify their own profiles/posts).
+### Security
+- **Authentication**: JWT-based login with Redis-backed token blacklisting for logout.
+- **Authorization**: 
+  - **RBAC**: Roles for `ADMIN` and `USER`.
+  - **Ownership**: Logic to ensure users only modify their own data.
 - **Brute-Force Protection**: 
-  - **Account Lockout**: Automatic 15-minute lockout after 5 failed login attempts.
-  - **Distributed Throttler**: Redis-backed rate limiting (100 req/min global, 5 req/min auth).
-- **Hardened Infrastructure**: Pre-configured `Helmet` headers, environment-based `CORS` whitelisting, and `Gzip` compression.
-- **Health Monitoring**: Production-grade liveness and readiness probes via `@nestjs/terminus` (Prisma & Redis health checks).
-- **Auto-Generated Documentation**: Real-time OpenAPI/Swagger documentation for all API resources.
+  - **Account Lockout**: 15-minute lockout after 5 failed attempts.
+  - **Rate Limiting**: Redis-backed throttling (100 req/min global, 5 req/min auth).
+- **Environment & Headers**: Pre-configured `Helmet` and environment-based `CORS`.
+- **Health Checks**: Liveness and readiness endpoints for monitoring.
 
-### ⚡ Performance & Scalability
-- **Global Redis Caching**: Automatic caching layer for high-demand resources with manual invalidation on updates.
-- **Background Jobs**: Bull Queue integration for asynchronous tasks like email notification delivery.
-- **Database Architecture**: High-speed MongoDB integration via Prisma ORM with structured schemas and automated migrations.
+### Performance
+- **Caching**: Global Redis caching for database queries.
+- **Queues**: Bull Queue for background jobs (e.g., emails).
+- **Database**: MongoDB with Prisma ORM.
 
-### 🛠️ Developer Experience
-- **Bull Dashboard**: Visual monitoring of background tasks (Secured via Admin-only middleware at `/admin/queues`).
-- **Comprehensive Testing**: 
-  - **Unit Testing**: 100% coverage on core services and controllers.
-  - **E2E Testing**: Automated integration tests for Auth, Users, and Posts modules.
-- **Clean Code Architecture**: Follows best practices with standard Response Interceptors and Global Exception Filters.
+### Monitoring & UI
+- **Swagger**: Auto-generated API docs.
+- **Bull Dashboard**: Interface for monitoring background tasks at `/admin/queues`.
 
 ---
 
-## 📦 Tech Stack
+## ⚙️ Setup & Installation
 
-- **Framework**: [NestJS v11](https://nestjs.com/)
-- **Runtime**: [Node.js v20+](https://nodejs.org/)
-- **Database**: [MongoDB](https://www.mongodb.com/)
-- **ORM**: [Prisma](https://www.prisma.io/)
-- **Cache/Queue**: [Redis](https://redis.io/)
-- **Security**: [Helmet](https://helmetjs.github.io/), [Bcrypt](https://github.com/kelektiv/node.bcrypt.js)
-- **Testing**: [Jest](https://jestjs.io/), [Supertest](https://github.com/visionmedia/supertest)
-
----
-
-## ⚙️ Project Setup
-
-### 1. Prerequisites
+### 1. Requirements
 - Node.js (v20+)
-- MongoDB instance (Atlas or local)
-- Redis server
+- MongoDB
+- Redis
 
-### 2. Environment Configuration
-Create a `.env` file in the root directory:
+### 2. Environment Setup
+Create a `.env` file:
 
 ```env
-# Application
+# App
 PORT=3000
 NODE_ENV=development
 
-# Security
-JWT_SECRET=your_ultra_secure_secret
+# Auth
+JWT_SECRET=your_secret
 JWT_EXPIRES_IN=1h
 
-# Database
-MONGO_URI="mongodb+srv://user:pass@cluster.mongodb.net/dbname"
+# DB
+MONGO_URI="mongodb://localhost:27017/dbname"
 
-# Cache & Queue (Redis)
+# Redis
 REDIS_HOST=localhost
 REDIS_PORT=6379
 
-# Mail (Optional)
+# Mail
 MAIL_HOST=smtp.example.com
 MAIL_PORT=587
 MAIL_USER=user@example.com
 MAIL_PASS=password
 ```
 
-### 3. Installation
+### 3. Install & Generate
 ```bash
-$ npm install
-```
-
-### 4. Database Sync
-```bash
-$ npx prisma generate
+npm install
+npx prisma generate
 ```
 
 ---
 
-## 🏃 Running the App
+## 🏃 Commands
 
 ```bash
-# Development mode
-$ npm run start:dev
+# Start development
+npm run start:dev
 
-# Production mode
-$ npm run build
-$ npm run start:prod
+# Run tests
+npm test
+
+# Production build
+npm run build
+npm run start:prod
 ```
 
 ---
 
-## 🧪 Testing Suite
+## 🐳 Docker Setup
 
-We maintain a rigorous testing standard to ensure architectural stability.
+Run everything in containers:
 
 ```bash
-# Run all tests (Unit + E2E)
-$ npm run test
+# Start all services
+docker-compose up --build
 
-# Run specific module E2E tests
-$ npm run test:e2e
-
-# Run with coverage report
-$ npm run test:cov
+# Run in background
+docker-compose up -d
 ```
 
 ---
 
----
+## 📖 API & Documentation
 
-## 📖 API Documentation & Testing
+### Swagger UI
+Documentation and live testing available at:
+- `http://localhost:3000/api/docs`
 
-### 🟢 Swagger UI (Interactive)
-The complete API documentation is auto-generated and available as an interactive playground:
-- **Endpoint**: `http://localhost:3000/api/docs`
-- **Features**: Live request testing, schema definitions, and authentication simulation.
-
-### 🧡 Postman Collection
-For offline testing or team collaboration, use our official Postman documentation:
-- **Link**: [Postman Collection](https://documenter.getpostman.com/view/26901515/2sBXVckCjz#2aee7993-d2f8-44a0-93f1-5ca64ea4c227)
+### Postman
+- [Postman Collection Link](https://documenter.getpostman.com/view/26901515/2sBXVckCjz#2aee7993-d2f8-44a0-93f1-5ca64ea4c227)
 
 ---
 
-## 🐳 Docker Deployment
+## 📈 Health & Monitoring
 
-The application is container-ready with a professional multi-stage build.
-
-```bash
-# Start all services (App, MongoDB, Redis)
-$ docker-compose up --build
-
-# Run in detached mode
-$ docker-compose up -d
-```
+- **Liveness**: `GET /api/health`
+- **Readiness**: `GET /api/health/ready`
+- **Queue Dashboard**: `GET /api/admin/queues` (Admin token required)
 
 ---
-
-## 📈 Monitoring & Health
-We provide standardized health checks for zero-downtime deployments and monitoring.
-
-- **Liveness**: `http://localhost:3000/api/health` (Simple uptime check)
-- **Readiness**: `http://localhost:3000/api/health/ready` (Verifies DB & Redis connectivity)
-- **Jobs**: `http://localhost:3000/admin/queues` (Worker monitoring)
-
----
-
-## 📜 API Documentation Summary
 
 | Method | Endpoint | Description | Access |
 | :--- | :--- | :--- | :--- |
-| **POST** | `/api/auth/register` | User Registration | Public (Throttled) |
-| **POST** | `/api/auth/login` | User Login | Public (Lockout protection) |
-| **GET** | `/api/auth/profile` | Current Profile | Private |
-| **GET** | `/api/users` | List All Users | Admin Only |
-| **GET** | `/api/posts` | Feed | Public |
-| **POST** | `/api/posts` | Create Post | Private |
-| **PATCH** | `/api/posts/:id` | Update Post | Owner Only |
-
----
-
-## 📄 License
-This project is [MIT licensed](LICENSE).
+| **POST** | `/api/auth/register` | Register user | Public |
+| **POST** | `/api/auth/login` | Login | Public |
+| **GET** | `/api/auth/profile` | View profile | Private |
+| **GET** | `/api/users` | List users | Admin |
+| **GET** | `/api/posts` | View feed | Public |
+| **POST** | `/api/posts` | Create post | Private |
+| **PATCH** | `/api/posts/:id` | Update post | Owner |
