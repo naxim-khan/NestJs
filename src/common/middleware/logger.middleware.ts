@@ -15,40 +15,39 @@ import { AuthenticatedRequest } from '../types/request.types';
 
 @Injectable()
 export class LoggerMiddleware implements NestMiddleware {
-    private readonly logger = new Logger('HTTP');
+  private readonly logger = new Logger('HTTP');
 
-    constructor(private readonly fileLogger: FileLoggerService) { }
+  constructor(private readonly fileLogger: FileLoggerService) {}
 
-    use(req: AuthenticatedRequest, res: Response, next: NextFunction): void {
+  use(req: AuthenticatedRequest, res: Response, next: NextFunction): void {
+    const { method, originalUrl, userContext } = req;
 
-        const { method, originalUrl, userContext } = req;
+    res.on('finish', () => {
+      const { statusCode } = res;
+      const duration = Date.now() - userContext.startTime;
+      const requestId = userContext.requestId;
+      const userIdentifier = userContext.userId
+        ? `[User: ${userContext.userId}]`
+        : '[Guest]';
 
-        res.on('finish', () => {
-            const { statusCode } = res;
-            const duration = Date.now() - userContext.startTime;
-            const requestId = userContext.requestId;
-            const userIdentifier = userContext.userId ? `[User: ${userContext.userId}]` : '[Guest]';
+      const logMessage = `[${requestId}] ${method} ${originalUrl} ${statusCode} - ${duration}ms ${userIdentifier} - ${userContext.ip}`;
 
-            const logMessage = `[${requestId}] ${method} ${originalUrl} ${statusCode} - ${duration}ms ${userIdentifier} - ${userContext.ip}`;
+      if (statusCode >= 500) {
+        this.logger.error(logMessage);
+        this.fileLogger.error(logMessage, undefined, 'HTTP');
+      } else if (statusCode >= 400) {
+        this.logger.warn(logMessage);
+        this.fileLogger.warn(logMessage, 'HTTP');
+      } else {
+        this.logger.log(logMessage);
+      }
 
-            if (statusCode >= 500) {
-                this.logger.error(logMessage);
-                this.fileLogger.error(logMessage, undefined, 'HTTP');
-            } else if (statusCode >= 400) {
-                this.logger.warn(logMessage);
-                this.fileLogger.warn(logMessage, 'HTTP');
-            } else {
-                this.logger.log(logMessage);
-            }
+      // Log Query parameters for debugging if they exist
+      if (Object.keys(req.query).length > 0) {
+        this.logger.debug(`[${requestId}] Query: ${JSON.stringify(req.query)}`);
+      }
+    });
 
-
-            // Log Query parameters for debugging if they exist
-            if (Object.keys(req.query).length > 0) {
-                this.logger.debug(`[${requestId}] Query: ${JSON.stringify(req.query)}`);
-            }
-        });
-
-        next();
-    }
+    next();
+  }
 }
-

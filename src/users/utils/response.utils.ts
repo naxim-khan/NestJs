@@ -4,7 +4,10 @@ export interface ApiResponse<T> {
   data?: T;
 }
 
-export function successResponse<T>(data: T, message = 'Operation successful'): ApiResponse<T> {
+export function successResponse<T>(
+  data: T,
+  message = 'Operation successful',
+): ApiResponse<T> {
   return {
     status: 'success',
     message,

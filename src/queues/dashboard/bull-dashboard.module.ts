@@ -6,26 +6,24 @@ import { BullAdapter } from '@bull-board/api/bullAdapter';
 import { ExpressAdapter } from '@bull-board/express';
 
 @Module({
-    imports: [
-        BullModule.registerQueue({
-            name: 'mail',
-        }),
-    ],
+  imports: [
+    BullModule.registerQueue({
+      name: 'mail',
+    }),
+  ],
 })
 export class BullDashboardModule {
-    constructor(
-        @InjectQueue('mail') private readonly mailQueue: Queue,
-    ) { }
+  constructor(@InjectQueue('mail') private readonly mailQueue: Queue) {}
 
-    static setupDashboard(app: INestApplication, queues: Queue[]) {
-        const serverAdapter = new ExpressAdapter();
-        serverAdapter.setBasePath('/admin/queues');
+  static setupDashboard(app: INestApplication, queues: Queue[]) {
+    const serverAdapter = new ExpressAdapter();
+    serverAdapter.setBasePath('/admin/queues');
 
-        createBullBoard({
-            queues: queues.map((q) => new BullAdapter(q)),
-            serverAdapter,
-        });
+    createBullBoard({
+      queues: queues.map((q) => new BullAdapter(q)),
+      serverAdapter,
+    });
 
-        app.use('/admin/queues', serverAdapter.getRouter());
-    }
+    app.use('/admin/queues', serverAdapter.getRouter());
+  }
 }

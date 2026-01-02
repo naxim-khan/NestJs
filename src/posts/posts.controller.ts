@@ -1,5 +1,20 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import * as RequestTypes from 'src/common/types/request.types';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -9,14 +24,17 @@ import { AuthGuard } from '../auth/guards/auth.guard';
 @ApiTags('Posts')
 @Controller('posts')
 export class PostsController {
-  constructor(private readonly postsService: PostsService) { }
+  constructor(private readonly postsService: PostsService) {}
 
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a new post' })
   @ApiResponse({ status: 201, description: 'Post created successfully' })
   @UseGuards(AuthGuard)
   @Post()
-  create(@Body() createPostDto: CreatePostDto, @Req() req: RequestTypes.AuthenticatedRequest) {
+  create(
+    @Body() createPostDto: CreatePostDto,
+    @Req() req: RequestTypes.AuthenticatedRequest,
+  ) {
     return this.postsService.create(createPostDto, req.user.sub);
   }
 
@@ -50,7 +68,11 @@ export class PostsController {
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @UseGuards(AuthGuard)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePostDto: UpdatePostDto, @Req() req: RequestTypes.AuthenticatedRequest) {
+  update(
+    @Param('id') id: string,
+    @Body() updatePostDto: UpdatePostDto,
+    @Req() req: RequestTypes.AuthenticatedRequest,
+  ) {
     return this.postsService.update(id, updatePostDto, req.user);
   }
 
@@ -60,7 +82,10 @@ export class PostsController {
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @UseGuards(AuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: string, @Req() req: RequestTypes.AuthenticatedRequest) {
+  remove(
+    @Param('id') id: string,
+    @Req() req: RequestTypes.AuthenticatedRequest,
+  ) {
     return this.postsService.remove(id, req.user);
   }
 }

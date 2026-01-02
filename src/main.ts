@@ -21,7 +21,8 @@ async function bootstrap() {
   // Security Hardening
   app.use(helmet());
 
-  const allowedOrigins = configService.get<string>('CORS_ORIGINS')?.split(',') || '*';
+  const allowedOrigins =
+    configService.get<string>('CORS_ORIGINS')?.split(',') || '*';
   app.enableCors({
     origin: allowedOrigins,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
@@ -38,7 +39,9 @@ async function bootstrap() {
   // Swagger Documentation
   const config = new DocumentBuilder()
     .setTitle('NestJS Production API')
-    .setDescription('The API documentation for the professional NestJS production-grade application')
+    .setDescription(
+      'The API documentation for the professional NestJS Task App.',
+    )
     .setVersion('1.0')
     .addBearerAuth()
     .build();
@@ -52,7 +55,9 @@ async function bootstrap() {
   const port = configService.getOrThrow('app.port');
   await app.listen(port);
   logger.log(`🚀 Application is running on: http://localhost:${port}/api`);
-  logger.log(`📝 Swagger documentation available at: http://localhost:${port}/api/docs`);
+  logger.log(
+    `📝 Swagger documentation available at: http://localhost:${port}/api/docs`,
+  );
 }
 bootstrap();
 
@@ -60,4 +65,3 @@ bootstrap();
 // NestFactory -> Used to create a NestJs application
 // AppModule -> Root module of the appliction (Everything start from here)
 // NestJs apps always start from one root module.
-

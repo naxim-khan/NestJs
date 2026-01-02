@@ -7,7 +7,6 @@ export function sanitizeUser(user: User) {
   return rest;
 }
 
-
 // hash password
 export async function hashPassword(password: string): Promise<string> {
   const saltRounds = 10;
@@ -15,6 +14,9 @@ export async function hashPassword(password: string): Promise<string> {
 }
 
 // compare password
-export async function comparePassword(password: string, hashed: string): Promise<boolean> {
+export async function comparePassword(
+  password: string,
+  hashed: string,
+): Promise<boolean> {
   return bcrypt.compare(password, hashed);
 }

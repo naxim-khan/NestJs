@@ -15,7 +15,9 @@ describe('AppController (e2e)', () => {
       .useValue({ canActivate: () => true })
       .overrideProvider(ThrottlerStorage)
       .useValue({
-        increment: jest.fn().mockResolvedValue({ totalHits: 0, timeToReset: 60 }),
+        increment: jest
+          .fn()
+          .mockResolvedValue({ totalHits: 0, timeToReset: 60 }),
       })
       .compile();
 

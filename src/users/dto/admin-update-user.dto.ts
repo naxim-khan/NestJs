@@ -1,26 +1,24 @@
 import { IsEmail, IsOptional, IsString } from 'class-validator';
 import { Role } from '@prisma/client';
 
-
 /**
  * DTO for admin-only user updates
  * Admins can update all fields including role
  */
 export class AdminUpdateUserDto {
-    @IsOptional()
-    @IsString()
-    name?: string;
+  @IsOptional()
+  @IsString()
+  name?: string;
 
-    @IsOptional()
-    @IsEmail()
-    email?: string;
+  @IsOptional()
+  @IsEmail()
+  email?: string;
 
+  @IsOptional()
+  @IsString()
+  role?: Role;
 
-    @IsOptional()
-    @IsString()
-    role?: Role;
-
-    @IsOptional()
-    @IsString()
-    password?: string;
+  @IsOptional()
+  @IsString()
+  password?: string;
 }

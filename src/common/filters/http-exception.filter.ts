@@ -1,5 +1,11 @@
 // src/common/filters/http-exception.filter.ts
-import { ExceptionFilter, Catch, ArgumentsHost, HttpException, Logger } from '@nestjs/common';
+import {
+  ExceptionFilter,
+  Catch,
+  ArgumentsHost,
+  HttpException,
+  Logger,
+} from '@nestjs/common';
 import { Request, Response } from 'express';
 
 @Catch()
@@ -11,11 +17,15 @@ export class HttpErrorFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
 
-    const status = exception instanceof HttpException
-      ? exception.getStatus()
-      : (exception.name === 'CastError' || exception.name === 'ValidationError' || exception.code === 'P2002' || exception.code === 'P2003')
-        ? 400
-        : 500;
+    const status =
+      exception instanceof HttpException
+        ? exception.getStatus()
+        : exception.name === 'CastError' ||
+            exception.name === 'ValidationError' ||
+            exception.code === 'P2002' ||
+            exception.code === 'P2003'
+          ? 400
+          : 500;
 
     let message = 'Internal server error';
 
@@ -42,17 +52,20 @@ export class HttpErrorFilter implements ExceptionFilter {
     } else if (exception.name === 'CastError') {
       message = `Invalid format for field ${exception.path}: ${exception.value}`;
     } else if (exception.name === 'ValidationError') {
-      message = Object.values(exception.errors).map((err: any) => err.message).join(', ');
+      message = Object.values(exception.errors)
+        .map((err: any) => err.message)
+        .join(', ');
     } else {
       // For other non-HttpExceptions, log the error
       this.logger.error('Unhandled Exception:', exception);
 
       const isProduction = process.env.NODE_ENV === 'production';
-      message = isProduction ? 'Internal server error' : (exception.message || 'An unexpected error occurred');
+      message = isProduction
+        ? 'Internal server error'
+        : exception.message || 'An unexpected error occurred';
     }
 
     response.status(status).json({
-
       status: 'error',
       message: message,
       data: null,

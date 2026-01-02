@@ -6,14 +6,8 @@ import cacheConfig from './cache.config';
 import mailConfig from './mail.config';
 
 export const appConfig = registerAs('app', () => ({
-    port: parseInt(process.env.PORT ?? '3000', 10),
-    env: process.env.NODE_ENV,
+  port: parseInt(process.env.PORT ?? '3000', 10),
+  env: process.env.NODE_ENV,
 }));
 
-export default [
-    appConfig,
-    databaseConfig,
-    jwtConfig,
-    cacheConfig,
-    mailConfig,
-];
+export default [appConfig, databaseConfig, jwtConfig, cacheConfig, mailConfig];

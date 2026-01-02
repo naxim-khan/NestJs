@@ -20,13 +20,27 @@ import { ConfigService } from '@nestjs/config';
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         secret: config.get<string>('jwt.secret') || 'dev_secret',
-        signOptions: { expiresIn: (config.get<string>('jwt.expiresIn') || '1h') as any },
+        signOptions: {
+          expiresIn: (config.get<string>('jwt.expiresIn') || '1h') as any,
+        },
       }),
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, AuthGuard, RolesGuard, OwnershipGuard, TokenBlacklistService],
-  exports: [AuthService, AuthGuard, RolesGuard, OwnershipGuard, TokenBlacklistService, JwtModule],
+  providers: [
+    AuthService,
+    AuthGuard,
+    RolesGuard,
+    OwnershipGuard,
+    TokenBlacklistService,
+  ],
+  exports: [
+    AuthService,
+    AuthGuard,
+    RolesGuard,
+    OwnershipGuard,
+    TokenBlacklistService,
+    JwtModule,
+  ],
 })
-
-export class AuthModule { }
+export class AuthModule {}

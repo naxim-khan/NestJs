@@ -51,7 +51,11 @@ describe('PostsService', () => {
   describe('create', () => {
     it('should create a post', async () => {
       const dto = { title: 'Test', content: 'Content' };
-      mockPrismaService.post.create.mockResolvedValue({ ...dto, id: '1', userId: 'user-1' });
+      mockPrismaService.post.create.mockResolvedValue({
+        ...dto,
+        id: '1',
+        userId: 'user-1',
+      });
 
       const result = await service.create(dto, 'user-1');
 
@@ -83,7 +87,9 @@ describe('PostsService', () => {
     it('should throw NotFoundException if post does not exist', async () => {
       mockPrismaService.post.findUnique.mockResolvedValue(null);
 
-      await expect(service.findOne('post-1')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne('post-1')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -95,7 +101,10 @@ describe('PostsService', () => {
 
     it('should allow owner to update', async () => {
       mockPrismaService.post.findUnique.mockResolvedValue(mockPost);
-      mockPrismaService.post.update.mockResolvedValue({ ...mockPost, ...updateDto });
+      mockPrismaService.post.update.mockResolvedValue({
+        ...mockPost,
+        ...updateDto,
+      });
 
       const result = await service.update('post-1', updateDto, ownerUser);
 
@@ -104,7 +113,10 @@ describe('PostsService', () => {
 
     it('should allow admin to update', async () => {
       mockPrismaService.post.findUnique.mockResolvedValue(mockPost);
-      mockPrismaService.post.update.mockResolvedValue({ ...mockPost, ...updateDto });
+      mockPrismaService.post.update.mockResolvedValue({
+        ...mockPost,
+        ...updateDto,
+      });
 
       const result = await service.update('post-1', updateDto, adminUser);
 
@@ -114,7 +126,9 @@ describe('PostsService', () => {
     it('should throw ForbiddenException for non-owner/non-admin', async () => {
       mockPrismaService.post.findUnique.mockResolvedValue(mockPost);
 
-      await expect(service.update('post-1', updateDto, otherUser)).rejects.toThrow(ForbiddenException);
+      await expect(
+        service.update('post-1', updateDto, otherUser),
+      ).rejects.toThrow(ForbiddenException);
     });
   });
 
@@ -144,7 +158,9 @@ describe('PostsService', () => {
     it('should throw ForbiddenException for non-owner/non-admin', async () => {
       mockPrismaService.post.findUnique.mockResolvedValue(mockPost);
 
-      await expect(service.remove('post-1', otherUser)).rejects.toThrow(ForbiddenException);
+      await expect(service.remove('post-1', otherUser)).rejects.toThrow(
+        ForbiddenException,
+      );
     });
   });
 });

@@ -112,7 +112,11 @@ describe('PostsController', () => {
       const result = await controller.update('post-1', dto, mockRequest);
 
       expect(result.title).toEqual('Updated');
-      expect(service.update).toHaveBeenCalledWith('post-1', dto, mockRequest.user);
+      expect(service.update).toHaveBeenCalledWith(
+        'post-1',
+        dto,
+        mockRequest.user,
+      );
     });
   });
 

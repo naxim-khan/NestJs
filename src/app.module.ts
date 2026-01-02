@@ -38,7 +38,9 @@ import { AdminAuthMiddleware } from './common/middleware/admin-auth.middleware';
           host: config.get('cache.host'),
           port: config.get('cache.port'),
         };
-        logger.log(`📡 [Bull] Connecting to Redis at ${redisOptions.host}:${redisOptions.port}`);
+        logger.log(
+          `📡 [Bull] Connecting to Redis at ${redisOptions.host}:${redisOptions.port}`,
+        );
         return {
           redis: redisOptions,
         };
@@ -76,11 +78,13 @@ import { AdminAuthMiddleware } from './common/middleware/admin-auth.middleware';
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
-      .apply(UserContextMiddleware, AuthRequestContextMiddleware, LoggerMiddleware)
+      .apply(
+        UserContextMiddleware,
+        AuthRequestContextMiddleware,
+        LoggerMiddleware,
+      )
       .forRoutes('*');
 
-    consumer
-      .apply(AdminAuthMiddleware)
-      .forRoutes('/admin/queues');
+    consumer.apply(AdminAuthMiddleware).forRoutes('/admin/queues');
   }
 }

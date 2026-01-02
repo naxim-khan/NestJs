@@ -16,4 +16,4 @@ import { MailModule } from 'src/queues/email/mail.module';
   controllers: [UsersController],
   exports: [UsersService],
 })
-export class UsersModule { }
+export class UsersModule {}

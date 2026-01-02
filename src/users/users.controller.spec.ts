@@ -64,7 +64,12 @@ describe('UsersController', () => {
 
   describe('create', () => {
     it('should create a new user', async () => {
-      const dto = { name: 'New User', email: 'new@test.com', password: 'password', role: Role.USER };
+      const dto = {
+        name: 'New User',
+        email: 'new@test.com',
+        password: 'password',
+        role: Role.USER,
+      };
       mockUsersService.create.mockResolvedValue(mockUser);
 
       const result = await controller.create(dto);
@@ -103,7 +108,11 @@ describe('UsersController', () => {
     it('should call update for a regular user', async () => {
       mockUsersService.update.mockResolvedValue({ ...mockUser, ...updateDto });
 
-      const result = await controller.update('1', updateDto, { role: Role.USER });
+      const result = await controller.update('1', updateDto, {
+        sub: '1',
+        email: 'test@gmail.com',
+        role: Role.USER,
+      });
 
       expect(result.name).toEqual('updated name');
       expect(service.update).toHaveBeenCalledWith('1', updateDto);
@@ -111,9 +120,16 @@ describe('UsersController', () => {
     });
 
     it('should call adminUpdate for an admin user', async () => {
-      mockUsersService.adminUpdate.mockResolvedValue({ ...mockUser, ...updateDto });
+      mockUsersService.adminUpdate.mockResolvedValue({
+        ...mockUser,
+        ...updateDto,
+      });
 
-      const result = await controller.update('1', updateDto, { role: Role.ADMIN });
+      const result = await controller.update('1', updateDto, {
+        sub: '2',
+        email: 'admin@test.com',
+        role: Role.ADMIN,
+      });
 
       expect(result.name).toEqual('updated name');
       expect(service.adminUpdate).toHaveBeenCalledWith('1', updateDto);

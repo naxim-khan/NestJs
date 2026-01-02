@@ -79,7 +79,12 @@ describe('UsersService', () => {
 
   describe('create', () => {
     it('should create a new user and sanitize the result', async () => {
-      const dto = { name: 'New User', email: 'new@test.com', password: 'password', role: Role.USER };
+      const dto = {
+        name: 'New User',
+        email: 'new@test.com',
+        password: 'password',
+        role: Role.USER,
+      };
       mockPrismaService.user.create.mockResolvedValue(mockUser);
 
       const result = await service.create(dto);
@@ -87,14 +92,23 @@ describe('UsersService', () => {
       expect(result).not.toHaveProperty('password');
       expect(prisma.user.create).toHaveBeenCalled();
       expect(cache.del).toHaveBeenCalledWith('users');
-      expect(mailQueue.addWelcomeEmailJob).toHaveBeenCalledWith(mockUser.email, mockUser.name);
+      expect(mailQueue.addWelcomeEmailJob).toHaveBeenCalledWith(
+        mockUser.email,
+        mockUser.name,
+      );
     });
 
     it('should throw BadRequestException if email already exists', async () => {
-      const dto = { name: 'New User', email: 'new@test.com', password: 'password' };
+      const dto = {
+        name: 'New User',
+        email: 'new@test.com',
+        password: 'password',
+      };
       mockPrismaService.user.create.mockRejectedValue({ code: 'P2002' });
 
-      await expect(service.create(dto as any)).rejects.toThrow(BadRequestException);
+      await expect(service.create(dto as any)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -143,7 +157,10 @@ describe('UsersService', () => {
     it('should update user and invalidate cache', async () => {
       const updateDto = { name: 'updated' };
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
-      mockPrismaService.user.update.mockResolvedValue({ ...mockUser, name: 'updated' });
+      mockPrismaService.user.update.mockResolvedValue({
+        ...mockUser,
+        name: 'updated',
+      });
 
       const result = await service.update('1', updateDto);
 
@@ -156,15 +173,20 @@ describe('UsersService', () => {
     it('should allow role updates and uppercase them', async () => {
       const updateDto = { role: 'admin' };
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
-      mockPrismaService.user.update.mockResolvedValue({ ...mockUser, role: Role.ADMIN });
+      mockPrismaService.user.update.mockResolvedValue({
+        ...mockUser,
+        role: Role.ADMIN,
+      });
 
       const result = await service.adminUpdate('1', updateDto);
 
       expect(result.role).toEqual(Role.ADMIN);
-      expect(prisma.user.update).toHaveBeenCalledWith(expect.objectContaining({
-        where: { id: '1' },
-        data: expect.objectContaining({ role: 'ADMIN' })
-      }));
+      expect(prisma.user.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: '1' },
+          data: expect.objectContaining({ role: 'ADMIN' }),
+        }),
+      );
     });
   });
 
@@ -176,7 +198,9 @@ describe('UsersService', () => {
 
       expect(result.email).toEqual(mockUser.email);
       expect(prisma.$transaction).toHaveBeenCalled();
-      expect(prisma.post.deleteMany).toHaveBeenCalledWith({ where: { userId: '1' } });
+      expect(prisma.post.deleteMany).toHaveBeenCalledWith({
+        where: { userId: '1' },
+      });
       expect(prisma.user.delete).toHaveBeenCalledWith({ where: { id: '1' } });
       expect(cache.del).toHaveBeenCalledWith('users');
     });

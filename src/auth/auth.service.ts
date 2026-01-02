@@ -8,84 +8,98 @@ import { TokenBlacklistService } from './token-blacklist.service';
 
 @Injectable()
 export class AuthService {
-    constructor(
-        private readonly userService: UsersService,
-        private readonly jwtService: JwtService,
-        private readonly tokenBlacklistService: TokenBlacklistService
-    ) { }
+  constructor(
+    private readonly userService: UsersService,
+    private readonly jwtService: JwtService,
+    private readonly tokenBlacklistService: TokenBlacklistService,
+  ) {}
 
-    // register method - always creates USER role
-    async registerUser(createUserDto: CreateUserDto) {
-        // Explicitly destructure to ensure role field is never read from input
-        const { name, email, password } = createUserDto;
+  // register method - always creates USER role
+  async registerUser(createUserDto: CreateUserDto) {
+    // Explicitly destructure to ensure role field is never read from input
+    const { name, email, password } = createUserDto;
 
-        const user = await this.userService.createRaw({
-            name,
-            email,
-            password,
-        }); // returns Prisma user object
+    const user = await this.userService.createRaw({
+      name,
+      email,
+      password,
+    }); // returns Prisma user object
 
-        const accessToken = await this.jwtService.signAsync(
-            { sub: user.id, email: user.email, role: user.role }
+    const accessToken = await this.jwtService.signAsync({
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    });
+
+    return {
+      accessToken,
+      user: sanitizeUser(user),
+    };
+  }
+
+  // login method
+  async loginUser(loginDto: LoginDto) {
+    const user = await this.userService.findByEmail(loginDto.email);
+    if (!user) {
+      throw new UnauthorizedException('Invalid email or password');
+    }
+
+    // Check if account is locked
+    if (user.lockUntil && user.lockUntil > new Date()) {
+      const remainingTime = Math.ceil(
+        (user.lockUntil.getTime() - new Date().getTime()) / 60000,
+      );
+      throw new UnauthorizedException(
+        `Account is temporarily locked. Try again in ${remainingTime} minutes.`,
+      );
+    }
+
+    const isPasswordMatching = await comparePassword(
+      loginDto.password,
+      user.password,
+    );
+
+    if (!isPasswordMatching) {
+      // Increment failed attempts
+      const updatedUser = await this.userService.incrementFailedAttempts(
+        user.id,
+      );
+
+      // Lock account if 5 or more failed attempts
+      if (updatedUser.failedLoginAttempts >= 5) {
+        await this.userService.lockAccount(user.id, 15); // Lock for 15 minutes
+        throw new UnauthorizedException(
+          'Too many failed attempts. Account has been locked for 15 minutes.',
         );
+      }
 
-        return {
-            accessToken,
-            user: sanitizeUser(user),
-        };
+      throw new UnauthorizedException('Invalid email or password');
     }
 
-
-    // login method
-    async loginUser(loginDto: LoginDto) {
-        const user = await this.userService.findByEmail(loginDto.email);
-        if (!user) {
-            throw new UnauthorizedException('Invalid email or password');
-        }
-
-        // Check if account is locked
-        if (user.lockUntil && user.lockUntil > new Date()) {
-            const remainingTime = Math.ceil((user.lockUntil.getTime() - new Date().getTime()) / 60000);
-            throw new UnauthorizedException(`Account is temporarily locked. Try again in ${remainingTime} minutes.`);
-        }
-
-        const isPasswordMatching = await comparePassword(loginDto.password, user.password);
-
-        if (!isPasswordMatching) {
-            // Increment failed attempts
-            const updatedUser = await this.userService.incrementFailedAttempts(user.id);
-
-            // Lock account if 5 or more failed attempts
-            if (updatedUser.failedLoginAttempts >= 5) {
-                await this.userService.lockAccount(user.id, 15); // Lock for 15 minutes
-                throw new UnauthorizedException('Too many failed attempts. Account has been locked for 15 minutes.');
-            }
-
-            throw new UnauthorizedException('Invalid email or password');
-        }
-
-        // Reset failed attempts on successful login
-        if (user.failedLoginAttempts > 0 || user.lockUntil) {
-            await this.userService.resetFailedAttempts(user.id);
-        }
-
-        const accessToken = await this.jwtService.signAsync(
-            { sub: user.id, email: user.email, role: user.role }
-        );
-        return {
-            accessToken,
-            user: sanitizeUser(user),
-        };
+    // Reset failed attempts on successful login
+    if (user.failedLoginAttempts > 0 || user.lockUntil) {
+      await this.userService.resetFailedAttempts(user.id);
     }
 
-    // get profile method
-    async getProfile(userId: string) {
-        return await this.userService.findOne(userId);
-    }
+    const accessToken = await this.jwtService.signAsync({
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    });
+    return {
+      accessToken,
+      user: sanitizeUser(user),
+    };
+  }
 
-    // logout method
-    async logoutUser(token: string) {
-        await this.tokenBlacklistService.add(token);
-        return 'User logged out successfully';
-    }
+  // get profile method
+  async getProfile(userId: string) {
+    return await this.userService.findOne(userId);
+  }
+
+  // logout method
+  async logoutUser(token: string) {
+    await this.tokenBlacklistService.add(token);
+    return 'User logged out successfully';
+  }
 }

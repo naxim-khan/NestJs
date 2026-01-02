@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -6,7 +10,7 @@ import { Role } from '@prisma/client';
 
 @Injectable()
 export class PostsService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(createPostDto: CreatePostDto, userId: string) {
     return this.prisma.post.create({
@@ -64,7 +68,11 @@ export class PostsService {
     return post;
   }
 
-  async update(id: string, updatePostDto: UpdatePostDto, user: { sub: string; role: string }) {
+  async update(
+    id: string,
+    updatePostDto: UpdatePostDto,
+    user: { sub: string; role: string },
+  ) {
     const post = await this.findOne(id);
 
     // Ownership check: Admin can update anything, User can only update their own
