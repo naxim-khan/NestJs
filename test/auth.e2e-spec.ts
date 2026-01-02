@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
+import { Request, Response, NextFunction } from 'express';
 import { AppModule } from './../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -41,7 +42,7 @@ describe('AuthController (e2e)', () => {
 
         app = moduleFixture.createNestApplication();
         // Fix for "UnsupportedMediaTypeError: unsupported charset UTF-8"
-        app.use((req, res, next) => {
+        app.use((req: Request, res: Response, next: NextFunction) => {
             if (req.headers['content-type']?.includes('UTF-8')) {
                 req.headers['content-type'] = req.headers['content-type'].replace('UTF-8', 'utf-8');
             }
