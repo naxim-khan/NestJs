@@ -7,6 +7,7 @@ import { MailModule } from './queues/email/mail.module';
 import { BullDashboardModule } from './queues/dashboard/bull-dashboard.module';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
+import { SentryModule } from '@sentry/nestjs/setup';
 
 import configuration from './config';
 import { AppController } from './app.controller';
@@ -30,6 +31,7 @@ import { AdminAuthMiddleware } from './common/middleware/admin-auth.middleware';
       isGlobal: true,
       load: configuration,
     }),
+    SentryModule.forRoot(),
     BullModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {

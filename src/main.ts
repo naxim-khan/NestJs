@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/nestjs';
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
@@ -14,8 +15,16 @@ import { Logger } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-
   const configService = app.get(ConfigService);
+
+  Sentry.init({
+    dsn: configService.get('sentry.dsn'),
+    environment: configService.get('sentry.environment'),
+    debug: configService.get('sentry.debug'),
+    sampleRate: configService.get('sentry.sampleRate'),
+    tracesSampleRate: configService.get('sentry.tracesSampleRate'),
+  });
+
   const logger = new Logger('Bootstrap');
 
   // Security Hardening

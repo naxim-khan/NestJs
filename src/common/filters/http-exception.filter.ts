@@ -6,6 +6,7 @@ import {
   HttpException,
   Logger,
 } from '@nestjs/common';
+import * as Sentry from '@sentry/nestjs';
 import { Request, Response } from 'express';
 
 @Catch()
@@ -21,9 +22,9 @@ export class HttpErrorFilter implements ExceptionFilter {
       exception instanceof HttpException
         ? exception.getStatus()
         : exception.name === 'CastError' ||
-            exception.name === 'ValidationError' ||
-            exception.code === 'P2002' ||
-            exception.code === 'P2003'
+          exception.name === 'ValidationError' ||
+          exception.code === 'P2002' ||
+          exception.code === 'P2003'
           ? 400
           : 500;
 
@@ -58,6 +59,7 @@ export class HttpErrorFilter implements ExceptionFilter {
     } else {
       // For other non-HttpExceptions, log the error
       this.logger.error('Unhandled Exception:', exception);
+      Sentry.captureException(exception);
 
       const isProduction = process.env.NODE_ENV === 'production';
       message = isProduction
