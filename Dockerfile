@@ -28,6 +28,7 @@ RUN npm install --only=production
 # Copy built files from build stage
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/prisma ./prisma
+COPY --from=build /app/node_modules/.prisma ./node_modules/.prisma
 
 # Expose the application port
 EXPOSE 3000
