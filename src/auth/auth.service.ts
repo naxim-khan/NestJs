@@ -12,7 +12,7 @@ export class AuthService {
     private readonly userService: UsersService,
     private readonly jwtService: JwtService,
     private readonly tokenBlacklistService: TokenBlacklistService,
-  ) {}
+  ) { }
 
   // register method - always creates USER role
   async registerUser(createUserDto: CreateUserDto) {
