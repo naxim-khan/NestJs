@@ -6,16 +6,16 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - MONGO_URI=${MONGO_URI:-mongodb+srv://nazeemkhanpk:B0BXbMEloOAIIqkk@cluster0.b7phy3i.mongodb.net/nest_js_project?retryWrites=true&w=majority&replicaSet=atlas-jmqlux-shard-0}
-      - JWT_SECRET=${JWT_SECRET:-e15130e4477d5d8225a0f8f15359d98d71454003aec92d1392560e61f22bef6dfdeed7a4329b5c3a0c8aed5d41ad9c4b72e139485d3144de06d1b8efecc98581}
+      - MONGO_URI=${MONGO_URI}
+      - JWT_SECRET=${JWT_SECRET}
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - SENTRY_DSN=${SENTRY_DSN:-https://3d2283f186ac1fdf73f83f898e1595ea@o4508925701062656.ingest.us.sentry.io/4510656289439744}
-      - MAIL_HOST=${MAIL_HOST:-smtp.gmail.com}
-      - MAIL_PORT=${MAIL_PORT:-587}
-      - MAIL_USER=${MAIL_USER:-nazeemkhanpk@gmail.com}
-      - MAIL_PASS=${MAIL_PASS:-hkjhjkhkjhkhjk my pass}
-      - MAIL_FROM=${MAIL_FROM:-"NestJS Task" <nazeemkhanpk@gmail.com>}
+      - SENTRY_DSN=${SENTRY_DSN}
+      - MAIL_HOST=${MAIL_HOST}
+      - MAIL_PORT=${MAIL_PORT}
+      - MAIL_USER=${MAIL_USER}
+      - MAIL_PASS=${MAIL_PASS}
+      - MAIL_FROM=${MAIL_FROM}
     depends_on:
       - redis
 
